@@ -20,7 +20,7 @@ async def on_ready():
 	_READY = True
 	await client.change_presence(activity=discord.Activity(name="VA-11 Hall-A: Cyberpunk Bartender Action", type=0))
 
-REQID = 46068
+REQID = 0
 
 async def RunScraper():
 	global PRODUCT, client, _READY, REQID
