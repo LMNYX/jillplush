@@ -9,6 +9,15 @@ handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w'
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
+## CONFIGURATION
+
+NotifChannelID  = 0
+RulesChannelID  = 0
+MessageUpdateID = 0
+Token           = ""
+
+## -- END OF CONFIGURATION
+
 client = discord.Client()
 
 PRODUCT = "jill-plush/"
@@ -27,9 +36,9 @@ async def RunScraper():
 	while not _READY:
 		await asyncio.sleep(0.1)
 	print("[jill] Started loop of Scraper.")
-	_notif = client.get_channel(819073622105653299)
-	_rules = client.get_channel(819114956883886100)
-	_msgUp = await _rules.fetch_message(847189790398873630)
+	_notif = client.get_channel(NotifChannelID)
+	_rules = client.get_channel(RulesChannelID)
+	_msgUp = await _rules.fetch_message(MessageUpdateID)
 	_plushURL = "https://merch.ysbryd.net/products/"+PRODUCT
 	while True:
 		try:
@@ -56,4 +65,4 @@ async def RunScraper():
 			await RunScraper()
 
 client.loop.create_task(RunScraper())
-client.run("")
+client.run(Token)
