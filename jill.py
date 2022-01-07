@@ -1,7 +1,8 @@
 import discord, time, logging, threading, requests, asyncio
 from bs4 import BeautifulSoup
 import random
-from datetime import datetime, timezone
+
+from settings import *
 
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
@@ -9,18 +10,7 @@ handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w'
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
-## CONFIGURATION
-
-NotifChannelID  = 0
-RulesChannelID  = 0
-MessageUpdateID = 0
-Token           = ""
-
-## -- END OF CONFIGURATION
-
 client = discord.Client()
-
-PRODUCT = "jill-plush/"
 _READY = False
 
 @client.event
@@ -31,15 +21,15 @@ async def on_ready():
 
 REQID = 0
 
+State = "Unavailable"
+
 async def RunScraper():
-	global PRODUCT, client, _READY, REQID
+	global PRODUCT, client, _READY, REQID, State
 	while not _READY:
 		await asyncio.sleep(0.1)
 	print("[jill] Started loop of Scraper.")
-	_notif = client.get_channel(NotifChannelID)
-	_rules = client.get_channel(RulesChannelID)
-	_msgUp = await _rules.fetch_message(MessageUpdateID)
-	_plushURL = "https://merch.ysbryd.net/products/"+PRODUCT
+	_notif = client.get_channel(CHANNEL_ID)
+	_plushURL = "https://merch.ysbryd.net/products/"+PRODUCT+"/"
 	while True:
 		try:
 			_plush = requests.get(_plushURL+"?_="+str(random.randint(1,1000000)))
@@ -51,13 +41,14 @@ async def RunScraper():
 			REQID += 1
 			_a = soup.find("button", {"id": "addToCart-product-template"})
 			_a = _a.text.replace(" ", "").replace("\n", "")
-			print(_a)
-			if not _a == "Unavailable":
-				await _notif.send("(no more ping)\n Jill Plush is Available!\n<https://merch.ysbryd.net/products/jill-plush>")
-			now = datetime.now(timezone.utc)
-			dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
-			await _msgUp.edit(content = "Last fetch : "+dt_string+" (UTC)\nResponse: `"+str(_a)+"`\nThis session updates: `"+str(REQID)+"`\n\nIf time is more than 5 minute late the bot is down.")
-			await asyncio.sleep(65)
+
+			if not _a == "Unavailable" and State == "Unavailable":
+				await _notif.send(CUSTOM_MESSAGE)
+
+			if State != _a:
+				State = _a
+			
+			await asyncio.sleep(DELAY)
 		except Exception as e:
 			print("[jill] Exception caught. Restarting...")
 			print(str(e))
@@ -65,4 +56,4 @@ async def RunScraper():
 			await RunScraper()
 
 client.loop.create_task(RunScraper())
-client.run(Token)
+client.run(CLIENT_TOKEN)
